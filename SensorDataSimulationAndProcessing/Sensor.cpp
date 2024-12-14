@@ -4,6 +4,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
+#include <string>
+#include <ctime>
 
 #define PERIODICALLY 1
 #define DETERMINISTIC 1
@@ -17,6 +19,10 @@ using namespace std;
 class Sensor {
 
 private:
+
+    mutex bufferMutex;
+
+public:
 
     /* Default data attributes */
     int timing = PERIODICALLY;  // 0 - Asynchronous, 1 - Periodically
@@ -32,13 +38,6 @@ private:
     vector<double> dataBuffer;
     int dataBufferSize = 10;
     bool dataReady = false;
-    mutex bufferMutex;
-
-public:
-
-    void test() { // Remove this function in the final version
-        std::cout << "Sensor test" << std::endl;
-    }
 
     bool isDataReady() {
 		return this->dataReady;
@@ -122,14 +121,14 @@ public:
     void setBufferSize(int n) {
 
         if (n <= 0) {
-            cout << "Invalid buffer size" << endl; // Remove this line in the final version
+            //cout << "Invalid buffer size" << endl; // Remove this line in the final version
             return;
         }
         else if(n != this->dataBufferSize) {
-			cout << "Buffer size changed to " << n << endl; // Remove this line in the final version
+			//cout << "Buffer size changed to " << n << endl; // Remove this line in the final version
 		}
 		else {
-			cout << "Buffer size is already " << n << endl;     // Remove this line in the final version
+			//cout << "Buffer size is already " << n << endl;     // Remove this line in the final version
             return;
 		}
 
@@ -149,7 +148,7 @@ public:
 
         // Ensure the buffer is large enough before returning.
         if (dataBuffer.size() < n) {
-            cout << endl << "Insufficient data in the buffer!" << endl; // Remove this line in the final version
+            //cout << endl << "Insufficient data in the buffer!" << endl; // Remove this line in the final version
             return vector<double>(); // Return an empty vector if insufficient data.
         }
         return dataBuffer;

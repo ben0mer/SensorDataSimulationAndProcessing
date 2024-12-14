@@ -1,36 +1,25 @@
-
+#include <iomanip> // For formatting output
+#include <algorithm> // For min_element and max_element
+#include "global.h"
 
 using namespace std;
 
 class DataProcessor {
 
-	private:
-		// DataProcessor attributes
-		vector<double> rawData;
-		int rawDataSize = 30;
-
 
 	public:
-
-		void test() { // Remove this function in the final version
-			std::cout << "DataProcessor test" << std::endl;
-		}
+		
+		// DataProcessor attributes
+		int rawDataSize = 10;
+		int filterType = 1; // 0: No filter, 1: Moving average filter, 2: Median filter
+		int filterSize = 5; // Filter size for moving average filter and median filter
 
 		int checkRawDataStatus() {
 
-			// Check rawData empty, full, overfull or partially full
-			if (this->rawData.empty()) {
-				return 0; // Empty
-			}
-			else if (this->rawData.size() == this->rawDataSize) {
-				return 1; // Full
-			}
-			else if (this->rawData.size() > this->rawDataSize) {
-				return 2; // Overfull
-			}
-			else {
-				return 3; // Partially full
-			}
+			if (rawData.empty()) return 0; // Empty
+			if (rawData.size() == rawDataSize) return 1; // Full
+			if (rawData.size() > rawDataSize) return 2; // Overfull
+			return 3; // Partially full
 		}
 
 		void assignRawData(int status, vector<double> data) {
@@ -104,15 +93,128 @@ class DataProcessor {
 
 		void inputData(vector<double> data) {
 
-			int status = checkRawDataStatus();
-			assignRawData(status, data);
+			assignRawData(checkRawDataStatus(), data);
+			filterData();
 		}
 
-		void printRawData() {
-			for (auto it = this->rawData.begin(); it != this->rawData.end(); ++it) {
-				cout << *it << " ";
+		void movingAverageFilter() {
+
+			if (rawData.size() < filterSize) return;
+
+			double sum = 0;
+
+			// Get last filterSize elements of rawData, sum them and divide by filterSize
+			for (int i = this->rawData.size() - this->filterSize; i < this->rawData.size(); i++) {
+				sum += this->rawData[i];
+			}
+
+			this->filteredData.push_back(sum / this->filterSize);
+			this->filteredData.erase(this->filteredData.begin());
+
+		}
+
+		void filterData() {
+			switch (this->filterType)
+			{
+			case 0: // No filter
+				this->filteredData = this->rawData;
+				break;
+
+			case 1: // Moving average filter
+				movingAverageFilter();
+				break;
+
+			case 2: // Median filter
+				//medianFilter(this->rawData, this->filterSize);
+				break;
+
+			default:
+				break;
+			}
+
+		}
+
+		double calculateAverage() {
+
+			if (rawData.empty()) return 0.0;
+
+			double sum = 0;
+			for (double val : rawData) {
+				sum += val;
+			}
+			return sum / rawData.size();
+		}
+
+		void calculateSubsetAverages(int subsetSize) {
+			this->subsetAverages.clear();
+
+			if (subsetSize <= 0 || rawData.size() < subsetSize) return; // Return if subsetSize is invalid or rawData is smaller than subsetSize
+
+			for (size_t i = 0; i <= rawData.size() - subsetSize; i += subsetSize) {
+				double sum = 0;
+				for (size_t j = i; j < i + subsetSize; j++) {
+					sum += rawData[j];
+				}
+				this->subsetAverages.push_back(sum / subsetSize);
+			}
+		}
+
+		double getMinValue(const vector<double>& data) {
+			if (data.empty()) return 0.0;
+			return *min_element(data.begin(), data.end());
+		}
+
+		double getMaxValue(const vector<double>& data) {
+			if (data.empty()) return 0.0;
+			return *max_element(data.begin(), data.end());
+		}
+
+		vector<double> getRawData() {
+			return this->rawData;
+		}
+
+		vector<double> getFilteredData() {
+			return this->filteredData;
+		}
+
+		vector<double> getSubsetAverages() {
+			return this->subsetAverages;
+		}
+
+		void printSubsetAverages() {
+			cout << "Subset Averages: ";
+			for (double val : this->subsetAverages) {
+				cout << val << " ";
 			}
 			cout << endl;
 		}
+
+		void printRawData() { // Remove this function in the final version
+			lock_guard<mutex> lock(printMutex);
+			cout << "\033[s";                    // Save cursor position
+			cout << "\033[H";                    // Move to top of the console
+			cout << "\033[2KProcessed Data: \n";   // Clear the line and write
+
+			for (auto it = this->rawData.begin(); it != this->rawData.end(); ++it) {
+				cout << *it << ", ";
+			}
+			cout << endl;
+
+			for (auto it = this->filteredData.begin(); it != this->filteredData.end(); ++it) {
+				cout << *it << ", ";
+			}
+			cout << endl;
+
+			cout << "\033[u";                    // Restore cursor position
+
+			cout.flush();
+		}
+	private:
+
+
+		// Fill rawData with zeros rawDataSize times
+		vector<double> rawData = vector<double>(rawDataSize, 0);
+		vector<double> filteredData = vector<double>(rawDataSize, 0);
+		vector<double> subsetAverages;
 
 };
