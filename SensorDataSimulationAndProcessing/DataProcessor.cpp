@@ -1,18 +1,117 @@
 #include <iomanip> // For formatting output
 #include <algorithm> // For min_element and max_element
-#include "global.h"
 
 using namespace std;
 
+template<typename dataType>
 class DataProcessor {
-
 
 	public:
 		
 		// DataProcessor attributes
-		int rawDataSize = 10;
-		int filterType = 1; // 0: No filter, 1: Moving average filter, 2: Median filter
-		int filterSize = 5; // Filter size for moving average filter and median filter
+		int rawDataSize = 20;
+		int maxRawDataSize = 600;
+		int filterType = 1; // 0: No filter, 1: Moving average filter
+		int filterSize = 5; // Filter size for moving average filter
+
+		void setFilterType(int filterType) {
+			if (filterType >= 0 && filterType <= 1) {
+				this->filterType = filterType;
+				cout << "Data processor filter type successfully set.";
+				return;
+			}
+			cout << "Invalid filter type. 0 - No filter, 1 - Moving average filter";
+			return;
+		}
+
+		void setFilterSize(int filterSize) {
+			if (filterSize > 0 && filterSize < rawDataSize) {
+				this->filterSize = filterSize;
+				cout << "Data processor filter size successfully set.";
+				return;
+			}
+			cout << "Invalid filter size. Filter size must be greater than 0 and must be less than " << rawDataSize;
+			return;
+		}
+
+		void setRawDataSize(int value) {
+			if (value > 0 && value < this->maxRawDataSize) {
+				this->rawDataSize = value;
+				// Clear rawData and fill it with zeros rawDataSize times
+				this->rawData.clear();
+				this->rawData = vector<dataType>(value, 0);
+				this->filteredData.clear();
+				this->filteredData = vector<double>(value, 0);
+				cout << "Data processor raw data size successfully set.";
+				return;
+			}
+			cout << "Invalid raw data size. Raw data size must be greater than 0 and must be less than " << this->maxRawDataSize;
+			return;
+		}
+
+		void inputData(vector<dataType> data) {
+
+			assignRawData(checkRawDataStatus(), data);
+			filterData();
+		}
+
+		void calculateSubsetAverages(int subsetSize) {
+			this->subsetAverages.clear();
+
+			if (subsetSize <= 0 || rawData.size() < subsetSize) return; // Return if subsetSize is invalid or rawData is smaller than subsetSize
+
+			for (size_t i = 0; i <= rawData.size() - subsetSize; i += subsetSize) {
+				double sum = 0;
+				for (size_t j = i; j < i + subsetSize; j++) {
+					sum += rawData[j];
+				}
+				this->subsetAverages.push_back(sum / subsetSize);
+			}
+		}
+
+		template<typename T>
+		double getMinValue(const vector<T>& data) {
+			if (data.empty()) return 0.0;
+			return *min_element(data.begin(), data.end());
+		}
+
+		template<typename T>
+		double getMaxValue(const vector<T>& data) {
+			if (data.empty()) return 0.0;
+			return *max_element(data.begin(), data.end());
+		}
+
+		template<typename T>
+		double calculateAverage(vector<T>& data) {
+
+			if (data.empty()) return 0.0;
+
+			double sum = 0;
+			for (double val : data) {
+				sum += val;
+			}
+			return sum / data.size();
+		}
+
+		vector<dataType> getRawData() {
+			return this->rawData;
+		}
+
+		vector<double> getFilteredData() {
+			return this->filteredData;
+		}
+
+		vector<double> getSubsetAverages() {
+			return this->subsetAverages;
+		}
+
+	private:
+
+		// Fill rawData with zeros rawDataSize times
+		vector<dataType> rawData = vector<dataType>(rawDataSize, 0);
+		vector<double> filteredData = vector<double>(rawDataSize, 0); // This vector type should be double to store the average values
+		vector<double> subsetAverages; // This vector type should be double to store the average values
+
 
 		int checkRawDataStatus() {
 
@@ -22,7 +121,7 @@ class DataProcessor {
 			return 3; // Partially full
 		}
 
-		void assignRawData(int status, vector<double> data) {
+		void assignRawData(int status, vector<dataType> data) {
 			switch (status)
 			{
 			case 0: // If rawData is empty
@@ -91,15 +190,10 @@ class DataProcessor {
 			}
 		}
 
-		void inputData(vector<double> data) {
-
-			assignRawData(checkRawDataStatus(), data);
-			filterData();
-		}
 
 		void movingAverageFilter() {
 
-			if (rawData.size() < filterSize) return;
+			if (this->rawData.size() < this->filterSize) return;
 
 			double sum = 0;
 
@@ -117,15 +211,16 @@ class DataProcessor {
 			switch (this->filterType)
 			{
 			case 0: // No filter
-				this->filteredData = this->rawData;
+				this->filteredData.clear();
+				this->filteredData = vector<double>(this->rawData.begin(), this->rawData.end());
+
 				break;
 
 			case 1: // Moving average filter
 				movingAverageFilter();
 				break;
 
-			case 2: // Median filter
-				//medianFilter(this->rawData, this->filterSize);
+			case 2: // Different filter types can be added in the future
 				break;
 
 			default:
@@ -133,88 +228,5 @@ class DataProcessor {
 			}
 
 		}
-
-		double calculateAverage() {
-
-			if (rawData.empty()) return 0.0;
-
-			double sum = 0;
-			for (double val : rawData) {
-				sum += val;
-			}
-			return sum / rawData.size();
-		}
-
-		void calculateSubsetAverages(int subsetSize) {
-			this->subsetAverages.clear();
-
-			if (subsetSize <= 0 || rawData.size() < subsetSize) return; // Return if subsetSize is invalid or rawData is smaller than subsetSize
-
-			for (size_t i = 0; i <= rawData.size() - subsetSize; i += subsetSize) {
-				double sum = 0;
-				for (size_t j = i; j < i + subsetSize; j++) {
-					sum += rawData[j];
-				}
-				this->subsetAverages.push_back(sum / subsetSize);
-			}
-		}
-
-		double getMinValue(const vector<double>& data) {
-			if (data.empty()) return 0.0;
-			return *min_element(data.begin(), data.end());
-		}
-
-		double getMaxValue(const vector<double>& data) {
-			if (data.empty()) return 0.0;
-			return *max_element(data.begin(), data.end());
-		}
-
-		vector<double> getRawData() {
-			return this->rawData;
-		}
-
-		vector<double> getFilteredData() {
-			return this->filteredData;
-		}
-
-		vector<double> getSubsetAverages() {
-			return this->subsetAverages;
-		}
-
-		void printSubsetAverages() {
-			cout << "Subset Averages: ";
-			for (double val : this->subsetAverages) {
-				cout << val << " ";
-			}
-			cout << endl;
-		}
-
-		void printRawData() { // Remove this function in the final version
-			lock_guard<mutex> lock(printMutex);
-			cout << "\033[s";                    // Save cursor position
-			cout << "\033[H";                    // Move to top of the console
-			cout << "\033[2KProcessed Data: \n";   // Clear the line and write
-
-			for (auto it = this->rawData.begin(); it != this->rawData.end(); ++it) {
-				cout << *it << ", ";
-			}
-			cout << endl;
-
-			for (auto it = this->filteredData.begin(); it != this->filteredData.end(); ++it) {
-				cout << *it << ", ";
-			}
-			cout << endl;
-
-			cout << "\033[u";                    // Restore cursor position
-
-			cout.flush();
-		}
-	private:
-
-
-		// Fill rawData with zeros rawDataSize times
-		vector<double> rawData = vector<double>(rawDataSize, 0);
-		vector<double> filteredData = vector<double>(rawDataSize, 0);
-		vector<double> subsetAverages;
 
 };
