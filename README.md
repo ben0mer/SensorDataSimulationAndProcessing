@@ -1,3 +1,10 @@
+
+# Sensor Data Simulation And Processing Project
+
+<div style="display: flex; justify-content: space-between;">
+  <img src="SensorDataSimulationAndProcessing/images/gui1.png" alt="GUI 1" >
+</div>
+
 # Steps to Download, Build and Running
 
 ### 1. Clone the Repository
@@ -5,7 +12,7 @@
 Open a terminal or command prompt and run the following command to clone the repository:
 
 ```
-git clone https://github.com/your-username/sensor-project.git
+git clone https://github.com/ben0mer/SensorDataSimulationAndProcessing.git
 ```
 
 Alternatively, you can download the repository as a ZIP file from GitHub and extract it to a directory of your choice.
