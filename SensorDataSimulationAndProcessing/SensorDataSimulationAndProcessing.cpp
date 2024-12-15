@@ -6,7 +6,7 @@ using namespace std;
 
 int main()
 {
-	using sensorDataType = float; // This type can be int, double and float.
+	using sensorDataType = float; // You can change the sensor data type. This type can be int, double and float.
 
 	Sensor<sensorDataType> sensor;
 	DataProcessor<sensorDataType> processor;

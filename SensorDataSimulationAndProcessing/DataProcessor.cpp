@@ -15,27 +15,33 @@ class DataProcessor {
 		int filterSize = 5; // Filter size for moving average filter
 
 		void setFilterType(int filterType) {
+
 			if (filterType >= 0 && filterType <= 1) {
+
 				this->filterType = filterType;
 				cout << "Data processor filter type successfully set.";
 				return;
 			}
+
 			cout << "Invalid filter type. 0 - No filter, 1 - Moving average filter";
-			return;
 		}
 
 		void setFilterSize(int filterSize) {
+
 			if (filterSize > 0 && filterSize < rawDataSize) {
+
 				this->filterSize = filterSize;
 				cout << "Data processor filter size successfully set.";
 				return;
 			}
+
 			cout << "Invalid filter size. Filter size must be greater than 0 and must be less than " << rawDataSize;
-			return;
 		}
 
 		void setRawDataSize(int value) {
+
 			if (value > 0 && value < this->maxRawDataSize) {
+
 				this->rawDataSize = value;
 				// Clear rawData and fill it with zeros rawDataSize times
 				this->rawData.clear();
@@ -45,8 +51,8 @@ class DataProcessor {
 				cout << "Data processor raw data size successfully set.";
 				return;
 			}
+
 			cout << "Invalid raw data size. Raw data size must be greater than 0 and must be less than " << this->maxRawDataSize;
-			return;
 		}
 
 		void inputData(vector<dataType> data) {
@@ -56,27 +62,33 @@ class DataProcessor {
 		}
 
 		void calculateSubsetAverages(int subsetSize) {
+
 			this->subsetAverages.clear();
 
 			if (subsetSize <= 0 || rawData.size() < subsetSize) return; // Return if subsetSize is invalid or rawData is smaller than subsetSize
 
 			for (size_t i = 0; i <= rawData.size() - subsetSize; i += subsetSize) {
+
 				double sum = 0;
 				for (size_t j = i; j < i + subsetSize; j++) {
+
 					sum += rawData[j];
 				}
+
 				this->subsetAverages.push_back(sum / subsetSize);
 			}
 		}
 
 		template<typename T>
 		double getMinValue(const vector<T>& data) {
+
 			if (data.empty()) return 0.0;
 			return *min_element(data.begin(), data.end());
 		}
 
 		template<typename T>
 		double getMaxValue(const vector<T>& data) {
+
 			if (data.empty()) return 0.0;
 			return *max_element(data.begin(), data.end());
 		}
@@ -88,20 +100,24 @@ class DataProcessor {
 
 			double sum = 0;
 			for (double val : data) {
+
 				sum += val;
 			}
 			return sum / data.size();
 		}
 
 		vector<dataType> getRawData() {
+
 			return this->rawData;
 		}
 
 		vector<double> getFilteredData() {
+
 			return this->filteredData;
 		}
 
 		vector<double> getSubsetAverages() {
+
 			return this->subsetAverages;
 		}
 
@@ -122,6 +138,7 @@ class DataProcessor {
 		}
 
 		void assignRawData(int status, vector<dataType> data) {
+
 			switch (status)
 			{
 			case 0: // If rawData is empty
@@ -199,6 +216,7 @@ class DataProcessor {
 
 			// Get last filterSize elements of rawData, sum them and divide by filterSize
 			for (int i = this->rawData.size() - this->filterSize; i < this->rawData.size(); i++) {
+
 				sum += this->rawData[i];
 			}
 
@@ -208,19 +226,22 @@ class DataProcessor {
 		}
 
 		void filterData() {
+
 			switch (this->filterType)
 			{
 			case 0: // No filter
+
 				this->filteredData.clear();
 				this->filteredData = vector<double>(this->rawData.begin(), this->rawData.end());
-
 				break;
 
 			case 1: // Moving average filter
+
 				movingAverageFilter();
 				break;
 
 			case 2: // Different filter types can be added in the future
+
 				break;
 
 			default:
